@@ -1,3 +1,4 @@
+alert("SCANORA JS ISHLƏYİR");
 // =====================================
 // SCANORA - SUPABASE CONNECTION
 // =====================================
