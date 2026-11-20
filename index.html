@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Scanora</title>
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<div id="loginScreen" class="login-screen">
+    <div class="login-card">
+        <div class="login-logo">SCANORA</div>
+        <p>BY LIASHARI</p>
+
+        <h2>კეთილი იყოს თქვენი მობრძანება</h2>
+        <span>გასაგრძელებლად შეიყვანეთ თქვენი შესვლის პაროლი.</span>
+
+        <form id="loginForm">
+            <input
+                type="password"
+                id="loginPassword"
+                placeholder="შესვლის პაროლი"
+                required
+            >
+
+            <button type="submit">შესვლა</button>
+            <div id="loginError"></div>
+        </form>
+    </div>
+</div>
+
+<header class="app-header">
+
+    <div class="brand">
+        <div class="brand-icon">
+            <img src="lialogo.png">
+            <i class="icon-scan"></i>
+        </div>
+
+        <div class="brand-info">
+            <h1>SCANORA</h1>
+            <span>BY LIASHARI</span>
+        </div>
+    </div>
+
+    <div class="brand-description">
+        SMART INVENTORY TECHNOLOGY 
+        <button id="logoutButton" class="logout-button">
+   გასასვლელი
+</button>
+    </div>
+
+</header>
+
+
+<div class="menu-container" id="menu">
+
+    <button class="menu-item item-1" id="scanButton"
+        aria-label="Barkod skaneri">⌗</button>
+
+    <button class="menu-item item-2" aria-label="Məhsul əlavə et">＋</button>
+
+    <button class="menu-item item-3" aria-label="Tarixlər">◷</button>
+
+    <button class="menu-item item-4" aria-label="Məhsullar">▤</button>
+
+    <button class="main-button" id="mainButton"
+        aria-label="Menyunu aç"
+        aria-expanded="false">
+        +
+    </button>
+
+</div>
+
+
+<div class="camera-modal" id="cameraModal">
+    <div class="camera-box">
+        <h2>Barkod skaneri</h2>
+        
+        <video id="video" autoplay playsinline></video>
+        
+        <p id="cameraMessage">კამერის მომზადება...</p>
+        
+<button type="button" id="manualBarcodeButton">
+   შტრიხკოდს თავად შევიყვან.
+</button>
+
+        <button id="closeCamera">დახურვა</button>
+    </div>
+</div>
+
+
+<section class="products-section" id="products-section">
+
+    <div class="section-heading">
+        <div>
+            <p id="productCount">პროდუქტი</p>
+        </div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="search-box">
+        <span class="search-icon">⌕</span>
+
+        <input
+            type="search"
+            id="productSearch"
+            placeholder="პროდუქტის სახელის ან შტრიხკოდის ძიება..."
+            autocomplete="off"
+        >
+
+        <button type="button" id="clearSearch" aria-label="ძიების გასუფთავება">
+            ×
+        </button>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filter-title">პროდუქტის ფილტრი</div>
+
+    <div class="filter-buttons">
+
+        <button class="filter-btn active" data-filter="all">
+           ყველა
+        </button>
+
+        <button class="filter-btn filter-green" data-filter="green">
+           ნორმალური 
+        </button>
+
+        <button class="filter-btn filter-yellow" data-filter="yellow">
+            4–7 დღე
+        </button>
+
+        <button class="filter-btn filter-orange" data-filter="orange">
+            ბოლო 3 დღე
+        </button>
+
+        <button class="filter-btn filter-red" data-filter="red">
+           დრო ამოიწურა.
+        </button>
+
+    </div>
+
+    <!-- SORT -->
+    <div class="sort-row">
+
+        <label for="productSort">დახარისხება:</label>
+
+        <select id="productSort">
+            <option value="nearest">უახლესი თარიღი</option>
+            <option value="farthest">ყველაზე შორეული თარიღი</option>
+            <option value="az"> A–Z</option>
+            <option value="za"> Z–A</option>
+        </select>
+
+    </div>
+
+    <!-- PRODUCTS -->
+    <div id="productList"></div>
+
+<!-- EXPIRED PRODUCTS -->
+<div class="expired-section" id="expiredSection">
+
+    <div class="expired-heading">
+        <div>
+            <h3>ვადაგასული პროდუქტები</h3>
+            <p>პროდუქტები, რომლებიც ყურადღებას საჭიროებენ</p>
+        </div>
+
+        <span id="expiredCount">პროდუქტი</span>
+    </div>
+
+    <div id="expiredProductList"></div>
+
+</div>
+
+    <div id="emptyProducts" class="empty-products" hidden>
+        <div class="empty-icon">⌕</div>
+        <h3>პროდუქტი ვერ მოიძებნა</h3>
+        <p>შეცვალეთ ძიების ან ფილტრის პარამეტრები.</p>
+    </div>
+
+    <!-- PRODUCT MODAL -->
+    <div class="product-modal" id="productModal">
+        <div class="product-form-box">
+
+            <h2>ახალი პროდუქტი</h2>
+            <p>შეიყვანეთ პროდუქტის ინფორმაცია</p>
+
+            <form id="productForm">
+
+                <label>შტრიხკოდის ნომერი</label>
+               
+<input
+    type="text"
+    id="formBarcode"
+    placeholder="შეიყვანეთ შტრიხკოდის ნომერი შტრიხკოდის კოდის ნომრის შეყვანა."
+    inputmode="numeric"
+    autocomplete="off"
+    required
+>
+
+
+                <label>პროდუქტის დასახელება</label>
+                <input
+                    type="text"
+                    id="formName"
+                    placeholder="..."
+                    required
+                >
+
+                <label>ვადის გასვლის თარიღი</label>
+                <input
+                    type="date"
+                    id="formDate"
+                    required
+                >
+
+                <button type="submit" id="saveButton">
+                   დამახსოვრება
+                </button>
+
+                <button type="button" id="cancelButton">
+                    გაუქმება
+                </button>
+
+            </form>
+        </div>
+    </div>
+
+</section>
+<script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="main.js"></script>
+
+
+</body>
+</html>
