@@ -181,82 +181,100 @@ function saveDatabase() {
 // BARCODE SCANNER
 // =====================================
 
+
 let scanner = null;
 let cameraControls = null;
 let barcodeDetected = false;
 
-scanButton.addEventListener("click", startCamera);
+const captureBarcode = document.getElementById("captureBarcode");
 
+scanButton.addEventListener("click", startCamera);
 
 async function startCamera() {
     cameraModal.classList.add("show");
-    cameraMessage.textContent = "Barkod gözlənilir...";
+    cameraMessage.textContent = "შტრიხკოდის მოლოდინში...";
     barcodeDetected = false;
 
     try {
         scanner = new ZXingBrowser.BrowserMultiFormatReader();
 
-        // Kameraları tap
-        const devices =
-            await ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: { ideal: "environment" },
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
+            },
+            audio: false
+        });
 
-        if (!devices.length) {
-            throw new Error("Kamera tapılmadı");
-        }
+        video.srcObject = stream;
+        await video.play();
 
-        // Arxa kameranı seç
-        const backCamera = devices.find(device =>
-            /back|rear|environment|arrière/i.test(device.label)
-        );
+        const track = stream.getVideoTracks()[0];
 
-        const selectedCamera = backCamera || devices[devices.length - 1];
-
-        // Kameranı aç
-        cameraControls = await scanner.decodeFromVideoDevice(
-            selectedCamera.deviceId,
-            video,
-            (result, error) => {
-                if (result && !barcodeDetected) {
-                    barcodeDetected = true;
-
-                    const barcode = result.getText();
-
-                    cameraMessage.textContent =
-                        "Barkod oxundu: " + barcode;
-
-                    stopCamera();
-                    cameraModal.classList.remove("show");
-
-                    searchProduct(barcode);
-                }
-            }
-        );
-
-        // Davamlı fokuslama
-        const stream = video.srcObject;
-        const track = stream?.getVideoTracks()[0];
-
-        if (track) {
+        if (track && track.getCapabilities) {
             const capabilities = track.getCapabilities();
 
             if (capabilities.focusMode?.includes("continuous")) {
                 await track.applyConstraints({
-                    advanced: [
-                        { focusMode: "continuous" }
-                    ]
+                    advanced: [{ focusMode: "continuous" }]
                 });
             }
         }
 
     } catch (error) {
         cameraMessage.textContent =
-            "Kamera açıla bilmədi. Barkodu əl ilə daxil edə bilərsiniz.";
-
-        console.error("Kamera xətası:", error);
+            "კამერის გახსნა ვერ მოხერხდა.";
+        console.error(error);
     }
 }
 
+// ფოტოს გადაღება და barkodun oxunması
+captureBarcode.addEventListener("click", async () => {
+    if (!video.videoWidth || barcodeDetected) return;
 
+    cameraMessage.textContent = "შტრიხკოდი მოწმდება...";
+
+    try {
+        const canvas = document.createElement("canvas");
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        const context = canvas.getContext("2d");
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const image = new Image();
+        image.src = canvas.toDataURL("image/jpeg", 0.95);
+
+        await new Promise((resolve, reject) => {
+            image.onload = resolve;
+            image.onerror = reject;
+        });
+
+        const result = await scanner.decodeFromImageElement(image);
+
+        barcodeDetected = true;
+
+        const barcode = result.getText();
+
+        cameraMessage.textContent =
+            "შტრიხკოდი წაკითხულია: " + barcode;
+
+        stopCamera();
+        cameraModal.classList.remove("show");
+
+        searchProduct(barcode);
+
+    } catch (error) {
+        cameraMessage.textContent =
+            "შტრიხკოდი ვერ ამოიკითხა. სცადეთ ხელახლა.";
+
+        console.error("Barcode scan:", error);
+    }
+});
+
+// Kameranı dayandır
 function stopCamera() {
     if (cameraControls) {
         cameraControls.stop();
@@ -269,11 +287,11 @@ function stopCamera() {
     }
 }
 
+// Kameranı bağla
 closeCamera.addEventListener("click", () => {
     stopCamera();
     cameraModal.classList.remove("show");
 });
-
 // =====================================
 // MANUAL BARCODE
 // =====================================
