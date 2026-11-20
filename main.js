@@ -359,13 +359,14 @@ function getExpiryInfo(date) {
 
     const difference = Math.round((expiryUTC - todayUTC) / 86400000);
 
-    if (difference <= 0) {
-        return {
-            className: "status-red",
-            label: difference === 0 ? "დღეს მთავრდება: დრო ამოიწურა"
-        };
-    }
-
+   if (difference <= 0) {
+    return {
+        className: "status-red",
+        label: difference === 0 ?
+            "დღეს მთავრდება: დრო ამოიწურა" :
+            "ვადა გასულია"
+    };
+}
     if (difference <= 3) {
         return {
             className: "status-orange",
