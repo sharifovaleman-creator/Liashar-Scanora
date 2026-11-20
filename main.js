@@ -180,12 +180,61 @@ try {
 let products = migrateProducts(savedProducts);
 
 // Supabase-ə məlumatları yüklə
+
+let productsChannel = null;
+
+// Supabase-dən məhsulları yenilə
+async function refreshProducts() {
+    const { data, error } = await supabaseClient
+        .from("products")
+        .select("*")
+        .order("expiry_date", { ascending: true });
+
+    if (error) {
+        console.error("Refresh error:", error);
+        return;
+    }
+
+    products = (data || []).map(row => ({
+        id: row.id,
+        barcode: row.barcode,
+        name: row.name,
+        date: row.expiry_date
+    }));
+
+    renderProducts();
+}
+
+// Real-time dinləmə
+function startRealtimeSync() {
+    if (productsChannel) {
+        supabaseClient.removeChannel(productsChannel);
+    }
+
+    productsChannel = supabaseClient
+        .channel("scanora-products-sync")
+        .on(
+            "postgres_changes",
+            {
+                event: "*",
+                schema: "public",
+                table: "products"
+            },
+            () => {
+                refreshProducts();
+            }
+        )
+        .subscribe(status => {
+            console.log("Realtime status:", status);
+        });
+}
+
+// İlk yükləmə və köhnə məlumatların köçürülməsi
 async function loadDatabase() {
     try {
         const migrationKey = "scanora_supabase_migrated_v1";
         const alreadyMigrated = localStorage.getItem(migrationKey);
 
-        // Köhnə məlumatları ilk dəfə Supabase-ə köçür
         if (!alreadyMigrated) {
             if (products.length > 0) {
                 const rows = products.map(product => ({
@@ -194,40 +243,28 @@ async function loadDatabase() {
                     expiry_date: product.date
                 }));
 
-                const { error: uploadError } = await supabaseClient
+                const { error } = await supabaseClient
                     .from("products")
                     .upsert(rows, {
                         onConflict: "barcode,expiry_date"
                     });
 
-                if (uploadError) throw uploadError;
+                if (error) throw error;
             }
 
             localStorage.setItem(migrationKey, "true");
         }
 
-        // Məhsulları Supabase-dən götür
-        const { data, error } = await supabaseClient
-            .from("products")
-            .select("*")
-            .order("expiry_date", { ascending: true });
+        await refreshProducts();
 
-        if (error) throw error;
-
-        products = (data || []).map(row => ({
-            id: row.id,
-            barcode: row.barcode,
-            name: row.name,
-            date: row.expiry_date
-        }));
-
-        renderProducts();
+        startRealtimeSync();
 
     } catch (error) {
         console.error("Database error:", error);
         alert("მონაცემების ჩატვირთვა ვერ მოხერხდა.");
     }
 }
+
 
 // Müvəqqəti olaraq köhnə yaddaşda da saxlayırıq
 function saveDatabase() {
