@@ -72,6 +72,7 @@ mainButton.addEventListener("click", () => {
 // AUTH
 // =====================================
 
+
 async function checkLogin() {
     const { data, error } = await supabaseClient.auth.getSession();
 
@@ -81,7 +82,12 @@ async function checkLogin() {
         return;
     }
 
-    loginScreen.style.display = data.session ? "none" : "flex";
+    if (data.session) {
+        loginScreen.style.display = "none";
+        await loadDatabase();
+    } else {
+        loginScreen.style.display = "flex";
+    }
 }
 
 loginForm.addEventListener("submit", async function (event) {
@@ -122,6 +128,11 @@ logoutButton.addEventListener("click", async function () {
 // DATABASE
 // =====================================
 
+
+// =====================================
+// DATABASE - SUPABASE
+// =====================================
+
 function migrateProducts(oldProducts) {
     const migrated = [];
 
@@ -132,10 +143,7 @@ function migrateProducts(oldProducts) {
                 name: product.name,
                 date: product.date
             });
-            return;
-        }
-
-        if (Array.isArray(product.dates)) {
+        } else if (Array.isArray(product.dates)) {
             product.dates.forEach(date => {
                 migrated.push({
                     barcode: String(product.barcode),
@@ -154,6 +162,7 @@ function migrateProducts(oldProducts) {
     });
 }
 
+// Köhnə məlumatların ehtiyat nüsxəsi
 let savedProducts = [];
 
 try {
@@ -170,10 +179,63 @@ try {
 
 let products = migrateProducts(savedProducts);
 
-localStorage.setItem("scanora_products", JSON.stringify(products));
+// Supabase-ə məlumatları yüklə
+async function loadDatabase() {
+    try {
+        const migrationKey = "scanora_supabase_migrated_v1";
+        const alreadyMigrated = localStorage.getItem(migrationKey);
 
+        // Köhnə məlumatları ilk dəfə Supabase-ə köçür
+        if (!alreadyMigrated) {
+            if (products.length > 0) {
+                const rows = products.map(product => ({
+                    barcode: product.barcode,
+                    name: product.name,
+                    expiry_date: product.date
+                }));
+
+                const { error: uploadError } = await supabaseClient
+                    .from("products")
+                    .upsert(rows, {
+                        onConflict: "barcode,expiry_date"
+                    });
+
+                if (uploadError) throw uploadError;
+            }
+
+            localStorage.setItem(migrationKey, "true");
+        }
+
+        // Məhsulları Supabase-dən götür
+        const { data, error } = await supabaseClient
+            .from("products")
+            .select("*")
+            .order("expiry_date", { ascending: true });
+
+        if (error) throw error;
+
+        products = (data || []).map(row => ({
+            id: row.id,
+            barcode: row.barcode,
+            name: row.name,
+            date: row.expiry_date
+        }));
+
+        renderProducts();
+
+    } catch (error) {
+        console.error("Database error:", error);
+        alert("მონაცემების ჩატვირთვა ვერ მოხერხდა.");
+    }
+}
+
+// Müvəqqəti olaraq köhnə yaddaşda da saxlayırıq
 function saveDatabase() {
-    localStorage.setItem("scanora_products", JSON.stringify(products));
+    localStorage.setItem(
+        "scanora_products",
+        JSON.stringify(products)
+    );
+
     renderProducts();
 }
 
@@ -351,11 +413,11 @@ formBarcode.addEventListener("input", () => {
     }
 });
 
-// =====================================
-// SAVE PRODUCT
-// =====================================
+ // =====================================
+ // SAVE PRODUCT - SUPABASE
+ // =====================================
 
-productForm.addEventListener("submit", event => {
+productForm.addEventListener("submit", async event => {
     event.preventDefault();
 
     const barcode = formBarcode.value.trim();
@@ -373,20 +435,60 @@ productForm.addEventListener("submit", event => {
     );
 
     if (alreadyExists) {
-        alert("ამ პროდუქტის ბარათი ამ თარიღით ახლა ხელმისაწვდომია!");
+        alert("ამ პროდუქტის ბარათი ამ თარიღით უკვე არსებობს!");
         return;
     }
 
-    products.push({ barcode, name, date });
+    const submitButton = productForm.querySelector(
+        'button[type="submit"]'
+    );
 
-    saveDatabase();
+    if (submitButton) submitButton.disabled = true;
 
-    productModal.classList.remove("show");
-    productForm.reset();
-    formName.readOnly = false;
+    try {
+        const { data, error } = await supabaseClient
+            .from("products")
+            .insert({
+                barcode: barcode,
+                name: name,
+                expiry_date: date
+            })
+            .select()
+            .single();
 
-    alert("პროდუქტი წარმატებით შენახულია!");
+        if (error) {
+            if (error.code === "23505") {
+                alert("ამ პროდუქტის ბარათი ამ თარიღით უკვე არსებობს!");
+            } else {
+                console.error("Save error:", error);
+                alert("პროდუქტის შენახვა ვერ მოხერხდა!");
+            }
+            return;
+        }
+
+        products.push({
+            id: data.id,
+            barcode: data.barcode,
+            name: data.name,
+            date: data.expiry_date
+        });
+
+        saveDatabase();
+
+        productModal.classList.remove("show");
+        productForm.reset();
+        formName.readOnly = false;
+
+        alert("პროდუქტი წარმატებით შენახულია!");
+
+    } catch (error) {
+        console.error("Save error:", error);
+        alert("პროდუქტის შენახვა ვერ მოხერხდა!");
+    } finally {
+        if (submitButton) submitButton.disabled = false;
+    }
 });
+
 
 // =====================================
 // CANCEL BUTTON
