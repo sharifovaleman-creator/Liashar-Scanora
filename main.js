@@ -709,25 +709,48 @@ filterButtons.forEach(button => {
 
 productSort.addEventListener("change", () => renderProducts());
 
-// =====================================
-// DELETE ONE CARD
-// =====================================
 
-function deleteProduct(event) {
+ // =====================================
+ // DELETE ONE CARD - SUPABASE
+ // =====================================
+
+async function deleteProduct(event) {
     const button = event.target.closest(".delete-product");
     if (!button) return;
 
     const barcode = button.dataset.barcode;
     const date = button.dataset.date;
 
-    const approved = confirm("გსურთ ამ პროდუქტის ბარათის წაშლა?");
+    const approved = confirm(
+        "გსურთ ამ პროდუქტის ბარათის წაშლა?"
+    );
+
     if (!approved) return;
 
-    products = products.filter(product => {
-        return !(product.barcode === barcode && product.date === date);
-    });
+    button.disabled = true;
 
-    saveDatabase();
+    try {
+        const { error } = await supabaseClient
+            .from("products")
+            .delete()
+            .eq("barcode", barcode)
+            .eq("expiry_date", date);
+
+        if (error) throw error;
+
+        products = products.filter(product =>
+            !(product.barcode === barcode && product.date === date)
+        );
+
+        saveDatabase();
+
+        alert("პროდუქტის ბარათი წარმატებით წაიშალა!");
+
+    } catch (error) {
+        console.error("Delete error:", error);
+        alert("პროდუქტის წაშლა ვერ მოხერხდა!");
+        button.disabled = false;
+    }
 }
 
 productList.addEventListener("click", deleteProduct);
