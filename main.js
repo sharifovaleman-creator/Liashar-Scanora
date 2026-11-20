@@ -1,4 +1,4 @@
-alert("SCANORA JS ISHLƏYİR");
+
 // =====================================
 // SCANORA - SUPABASE CONNECTION
 // =====================================
@@ -187,36 +187,75 @@ let barcodeDetected = false;
 
 scanButton.addEventListener("click", startCamera);
 
+
 async function startCamera() {
     cameraModal.classList.add("show");
-    cameraMessage.textContent = "შტრიხკოდის მოლოდინში...";
+    cameraMessage.textContent = "Barkod gözlənilir...";
     barcodeDetected = false;
 
     try {
         scanner = new ZXingBrowser.BrowserMultiFormatReader();
 
+        // Kameraları tap
+        const devices =
+            await ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
+
+        if (!devices.length) {
+            throw new Error("Kamera tapılmadı");
+        }
+
+        // Arxa kameranı seç
+        const backCamera = devices.find(device =>
+            /back|rear|environment|arrière/i.test(device.label)
+        );
+
+        const selectedCamera = backCamera || devices[devices.length - 1];
+
+        // Kameranı aç
         cameraControls = await scanner.decodeFromVideoDevice(
-            undefined,
+            selectedCamera.deviceId,
             video,
             (result, error) => {
                 if (result && !barcodeDetected) {
                     barcodeDetected = true;
 
                     const barcode = result.getText();
-                    cameraMessage.textContent = "შტრიხკოდის წაკითხვა: " + barcode;
+
+                    cameraMessage.textContent =
+                        "Barkod oxundu: " + barcode;
 
                     stopCamera();
                     cameraModal.classList.remove("show");
+
                     searchProduct(barcode);
                 }
             }
         );
+
+        // Davamlı fokuslama
+        const stream = video.srcObject;
+        const track = stream?.getVideoTracks()[0];
+
+        if (track) {
+            const capabilities = track.getCapabilities();
+
+            if (capabilities.focusMode?.includes("continuous")) {
+                await track.applyConstraints({
+                    advanced: [
+                        { focusMode: "continuous" }
+                    ]
+                });
+            }
+        }
+
     } catch (error) {
         cameraMessage.textContent =
-            "კამერის გახსნა ვერ მოხერხდა. შტრიხკოდის შეყვანა შეგიძლიათ ხელით.";
-        console.error(error);
+            "Kamera açıla bilmədi. Barkodu əl ilə daxil edə bilərsiniz.";
+
+        console.error("Kamera xətası:", error);
     }
 }
+
 
 function stopCamera() {
     if (cameraControls) {
