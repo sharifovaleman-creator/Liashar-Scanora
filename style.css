@@ -1036,3 +1036,24 @@ input:focus-visible {
     font-weight: 600;
     cursor: pointer;
 }
+
+#captureBarcode {
+    width: 100%;
+    padding: 15px;
+    margin-top: 12px;
+    border: none;
+    border-radius: 14px;
+    background: #2563EB;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+#video {
+    width: 100%;
+    display: block;
+    border-radius: 14px;
+    object-fit: cover;
+    touch-action: manipulation;
+}
