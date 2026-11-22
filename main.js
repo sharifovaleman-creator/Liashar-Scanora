@@ -230,33 +230,13 @@ function startRealtimeSync() {
 }
 
 // İlk yükləmə və köhnə məlumatların köçürülməsi
+
 async function loadDatabase() {
     try {
-        const migrationKey = "scanora_supabase_migrated_v1";
-        const alreadyMigrated = localStorage.getItem(migrationKey);
-
-        if (!alreadyMigrated) {
-            if (products.length > 0) {
-                const rows = products.map(product => ({
-                    barcode: product.barcode,
-                    name: product.name,
-                    expiry_date: product.date
-                }));
-
-                const { error } = await supabaseClient
-                    .from("products")
-                    .upsert(rows, {
-                        onConflict: "barcode,expiry_date"
-                    });
-
-                if (error) throw error;
-            }
-
-            localStorage.setItem(migrationKey, "true");
-        }
-
+        // Yalnız Supabase-dən məlumatları yüklə
         await refreshProducts();
 
+        // Real-time sinxronizasiyanı başlat
         startRealtimeSync();
 
     } catch (error) {
