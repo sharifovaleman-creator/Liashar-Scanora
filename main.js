@@ -250,9 +250,6 @@ function saveDatabase() {
 }
 
 
-// =====================================
-// SCANORA - AUTO BARCODE SCANNER
-// =====================================
 
 // =====================================
 // SCANORA - QUAGGA2 BARCODE SCANNER
@@ -260,57 +257,86 @@ function saveDatabase() {
 
 let scannerRunning = false;
 let barcodeDetected = false;
-
 let lastBarcode = "";
 let barcodeCount = 0;
 
-// Kamera düyməsi
 scanButton.addEventListener("click", startCamera);
+
+
+// KAMERALARI TAP
+async function checkCameras() {
+    let stream;
+
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+        });
+
+        const devices = await navigator.mediaDevices.enumerateDevices();
+
+        return devices.filter(device =>
+            device.kind === "videoinput"
+        );
+
+    } catch (error) {
+        cameraMessage.textContent = "Kamera xətası: " + error.message;
+        return [];
+
+    } finally {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+    }
+}
 
 
 // KAMERANI AÇ
 async function startCamera() {
 
     cameraModal.classList.add("show");
-
-    cameraMessage.textContent =
-        "კამერის მომზადება...";
+    cameraMessage.textContent = "Kamera hazırlanır...";
 
     barcodeDetected = false;
     lastBarcode = "";
     barcodeCount = 0;
+
     if (scannerRunning) {
         stopCamera();
     }
-    
-    await checkCameras();
-    return;
+
+    const cameras = await checkCameras();
+
+    // CAMERA 0 SEÇİLİR
+    const selectedCamera = cameras.find(camera =>
+        camera.label.toLowerCase().includes("camera 0")
+    );
+
+    if (!selectedCamera) {
+        cameraMessage.textContent = "Camera 0 tapılmadı!";
+        return;
+    }
 
     if (typeof Quagga === "undefined") {
-        cameraMessage.textContent =
-            "სკანერის ჩატვირთვა ვერ მოხერხდა.";
+        cameraMessage.textContent = "Skaner yüklənmədi!";
         return;
     }
 
     Quagga.init({
 
         inputStream: {
-
             name: "Scanora Camera",
-
             type: "LiveStream",
 
-            target: document.querySelector(
-                "#scanner-container"
-            ),
+            target: document.querySelector("#scanner-container"),
 
-           constraints: {
-    deviceId: {
-        exact: "CAMERA_DEVICE_ID"
-    },
-    width: { ideal: 1280 },
-    height: { ideal: 720 }
-},
+            constraints: {
+                deviceId: {
+                    exact: selectedCamera.deviceId
+                },
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            },
 
             area: {
                 top: "15%",
@@ -328,7 +354,6 @@ async function startCamera() {
         frequency: 10,
 
         decoder: {
-
             readers: [
                 "ean_reader",
                 "ean_8_reader",
@@ -336,7 +361,6 @@ async function startCamera() {
                 "upc_reader",
                 "upc_e_reader"
             ],
-
             multiple: false
         },
 
@@ -345,53 +369,20 @@ async function startCamera() {
     }, function(error) {
 
         if (error) {
-
             console.error("Quagga error:", error);
-
-            cameraMessage.textContent =
-                "კამერის გახსნა ვერ მოხერხდა.";
-
+            cameraMessage.textContent = "Kamera açıla bilmədi!";
             return;
         }
+
+        Quagga.onDetected(handleBarcode);
 
         Quagga.start();
 
         scannerRunning = true;
 
-        cameraMessage.textContent =
-            "შტრიხკოდის მოლოდინში...";
-
-        // Autofocus dəstəyi
-        try {
-
-            const track =
-                Quagga.CameraAccess.getActiveTrack();
-
-            const capabilities =
-                track.getCapabilities();
-
-            if (
-                capabilities.focusMode &&
-                capabilities.focusMode.includes("continuous")
-            ) {
-
-                track.applyConstraints({
-                    advanced: [
-                        { focusMode: "continuous" }
-                    ]
-                }).catch(console.error);
-
-            }
-
-        } catch (error) {
-
-            console.log("Autofocus dəstəklənmir:", error);
-
-        }
+        cameraMessage.textContent = "Barkod gözlənilir...";
 
     });
-
-    Quagga.onDetected(handleBarcode);
 }
 
 
@@ -399,41 +390,31 @@ async function startCamera() {
 function handleBarcode(result) {
 
     if (barcodeDetected) return;
-
     if (!result || !result.codeResult) return;
 
     const barcode = result.codeResult.code;
 
     if (!barcode) return;
 
-    // Eyni barkodu iki dəfə təsdiqlə
     if (barcode === lastBarcode) {
-
         barcodeCount++;
-
     } else {
-
         lastBarcode = barcode;
         barcodeCount = 1;
-
     }
 
     cameraMessage.textContent =
-        "შტრიხკოდის შემოწმება: " + barcode;
+        "Barkod yoxlanılır: " + barcode;
 
     if (barcodeCount < 2) return;
 
     barcodeDetected = true;
-
-    cameraMessage.textContent =
-        "შტრიხკოდი წაკითხულია: " + barcode;
 
     stopCamera();
 
     cameraModal.classList.remove("show");
 
     searchProduct(barcode);
-
 }
 
 
@@ -457,76 +438,20 @@ function stopCamera() {
 closeCamera.addEventListener("click", () => {
 
     stopCamera();
-
     cameraModal.classList.remove("show");
 
 });
 
 
-// ƏL İLƏ BARKOD DAXİL ETMƏ
+// ƏL İLƏ BARKOD
 manualBarcodeButton.addEventListener("click", () => {
 
     stopCamera();
-
     cameraModal.classList.remove("show");
-
     openProductForm("");
 
 });
 
-
-// MƏHSUL FORMASI
-function searchProduct(barcode) {
-
-    barcode = String(barcode).trim();
-
-    if (!barcode) return;
-
-    openProductForm(barcode);
-
-}
-
-
-async function checkCameras() {
-    let stream;
-    
-    try {
-        stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: { ideal: "environment" }
-            },
-            audio: false
-        });
-        
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        
-        const cameras = devices.filter(
-            device => device.kind === "videoinput"
-        );
-        
-        if (cameras.length === 0) {
-            cameraMessage.textContent = "Heç bir kamera tapılmadı!";
-            return;
-        }
-        
-      cameraMessage.textContent = JSON.stringify(
-    cameras.map((camera, index) => ({
-        number: index + 1,
-        name: camera.label,
-        id: camera.deviceId
-    })),
-    null,
-    2
-);
-        
-    } catch (error) {
-        cameraMessage.textContent = "Xəta: " + error.message;
-    } finally {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-        }
-    }
-}
 
 
 // =====================================
