@@ -269,7 +269,7 @@ scanButton.addEventListener("click", startCamera);
 
 
 // KAMERANI AÇ
-function startCamera() {
+async function startCamera() {
 
     cameraModal.classList.add("show");
 
@@ -279,10 +279,12 @@ function startCamera() {
     barcodeDetected = false;
     lastBarcode = "";
     barcodeCount = 0;
-
     if (scannerRunning) {
         stopCamera();
     }
+    
+    await checkCameras();
+    return;
 
     if (typeof Quagga === "undefined") {
         cameraMessage.textContent =
@@ -482,35 +484,40 @@ function searchProduct(barcode) {
 
 
 async function checkCameras() {
-
+    let stream;
+    
     try {
-
-        const devices =
-            await navigator.mediaDevices.enumerateDevices();
-
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: { ideal: "environment" }
+            },
+            audio: false
+        });
+        
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        
         const cameras = devices.filter(
             device => device.kind === "videoinput"
         );
-
-        console.log("SCANORA CAMERAS:", cameras);
-
-        cameras.forEach((camera, index) => {
-
-            console.log(
-                "Kamera:",
-                index,
-                camera.label,
-                camera.deviceId
-            );
-
-        });
-
+        
+        if (cameras.length === 0) {
+            cameraMessage.textContent = "Heç bir kamera tapılmadı!";
+            return;
+        }
+        
+        cameraMessage.textContent =
+            "Tapılan kamera sayı: " + cameras.length + "\n" +
+            cameras.map((camera, index) =>
+                (index + 1) + ". " + (camera.label || "Kamera " + (index + 1))
+            ).join("\n");
+        
     } catch (error) {
-
-        console.error("Camera list error:", error);
-
+        cameraMessage.textContent = "Xəta: " + error.message;
+    } finally {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
     }
-
 }
 
 
