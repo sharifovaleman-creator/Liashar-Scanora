@@ -77,21 +77,29 @@
 </div>
 
 
+
 <div class="camera-modal" id="cameraModal">
     <div class="camera-box">
-        <h2>Barkod skaneri</h2>
-        
-        <video id="video" autoplay playsinline></video>
-      
-        <p id="cameraMessage">კამერის მომზადება...</p>
-        
-<button type="button" id="manualBarcodeButton">
-   შტრიხკოდს თავად შევიყვან.
-</button>
 
-        <button id="closeCamera">დახურვა</button>
+        <h2>Barkod skaneri</h2>
+
+        <div id="scanner-container"></div>
+
+        <p id="cameraMessage">
+            Kameranın hazırlanması...
+        </p>
+
+        <button type="button" id="manualBarcodeButton">
+            შტრიხკოდს თავად შევიყვან.
+        </button>
+
+        <button type="button" id="closeCamera">
+            დახურვა
+        </button>
+
     </div>
 </div>
+
 
 
 <section class="products-section" id="products-section">
@@ -233,7 +241,7 @@
     </div>
 
 </section>
-<script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="main.js"></script>
 
