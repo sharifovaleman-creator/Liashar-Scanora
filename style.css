@@ -240,32 +240,35 @@ body {
 
 
 #scanner-container {
-    position: relative;
     width: 100%;
-    aspect-ratio: 16 / 9;
+    height: 420px;
+    position: relative;
     overflow: hidden;
-    background: #111827;
-    border-radius: 16px;
+    background: #000;
+    border-radius: 14px;
 }
 
 #scanner-container video {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100% !important;
     height: 100% !important;
-    object-fit: contain;
+    object-fit: cover !important;
+    position: absolute;
+    inset: 0;
 }
 
 #scanner-container canvas {
     position: absolute;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100% !important;
     height: 100% !important;
-    pointer-events: none;
 }
 
+@media (max-width: 480px) {
+    #scanner-container {
+        height: 65vh;
+        max-height: 520px;
+    }
+}
 .camera-box p {
     font-size: 14px;
     color: #475569;
