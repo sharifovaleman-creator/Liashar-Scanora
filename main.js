@@ -2,7 +2,6 @@
 // =====================================
 // SCANORA - SUPABASE CONNECTION
 // =====================================
-
 const SUPABASE_URL = "https://wwwwqmrkdiafdbxxcpnm.supabase.co";
 const SUPABASE_KEY = "sb_publishable_hPPyr4WHUS0Di1Y-fd6KNA_vWQJb1jU";
 
@@ -123,12 +122,6 @@ logoutButton.addEventListener("click", async function () {
 
     location.reload();
 });
-
-// =====================================
-// DATABASE
-// =====================================
-
-
 // =====================================
 // DATABASE - SUPABASE
 // =====================================
@@ -256,130 +249,122 @@ function saveDatabase() {
     renderProducts();
 }
 
-// =====================================
-// BARCODE SCANNER
-// =====================================
 
+// =====================================
+// SCANORA - AUTO BARCODE SCANNER
+// =====================================
 
 let scanner = null;
 let cameraControls = null;
 let barcodeDetected = false;
 
-const captureBarcode = document.getElementById("captureBarcode");
-
 scanButton.addEventListener("click", startCamera);
 
+// Kameranı aç və avtomatik barkod axtar
 async function startCamera() {
+
     cameraModal.classList.add("show");
-    cameraMessage.textContent = "შტრიხკოდის მოლოდინში...";
+    cameraMessage.textContent = "კამერის მომზადება...";
     barcodeDetected = false;
 
     try {
+
         scanner = new ZXingBrowser.BrowserMultiFormatReader();
 
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: { ideal: "environment" },
-                width: { ideal: 1920 },
-                height: { ideal: 1080 }
+        cameraMessage.textContent =
+            "შტრიხკოდის მოლოდინში...";
+
+        cameraControls = await scanner.decodeFromConstraints(
+            {
+                video: {
+                    facingMode: { ideal: "environment" },
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                },
+                audio: false
             },
-            audio: false
-        });
+            video,
+            (result, error) => {
 
-        video.srcObject = stream;
-        await video.play();
+                // Barkod tapılıbsa
+                if (result && !barcodeDetected) {
 
-        const track = stream.getVideoTracks()[0];
+                    barcodeDetected = true;
 
-        if (track && track.getCapabilities) {
-            const capabilities = track.getCapabilities();
+                    const barcode = result.getText();
 
-            if (capabilities.focusMode?.includes("continuous")) {
-                await track.applyConstraints({
-                    advanced: [{ focusMode: "continuous" }]
-                });
+                    cameraMessage.textContent =
+                        "შტრიხკოდი წაკითხულია: " + barcode;
+
+                    stopCamera();
+
+                    cameraModal.classList.remove("show");
+
+                    searchProduct(barcode);
+                }
             }
-        }
+        );
 
     } catch (error) {
+
         cameraMessage.textContent =
             "კამერის გახსნა ვერ მოხერხდა.";
-        console.error(error);
+
+        console.error("Camera error:", error);
     }
 }
 
-// ფოტოს გადაღება და barkodun oxunması
-captureBarcode.addEventListener("click", async () => {
-    if (!video.videoWidth || barcodeDetected) return;
-
-    cameraMessage.textContent = "შტრიხკოდი მოწმდება...";
-
-    try {
-        const canvas = document.createElement("canvas");
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-
-        const context = canvas.getContext("2d");
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        const image = new Image();
-        image.src = canvas.toDataURL("image/jpeg", 0.95);
-
-        await new Promise((resolve, reject) => {
-            image.onload = resolve;
-            image.onerror = reject;
-        });
-
-        const result = await scanner.decodeFromImageElement(image);
-
-        barcodeDetected = true;
-
-        const barcode = result.getText();
-
-        cameraMessage.textContent =
-            "შტრიხკოდი წაკითხულია: " + barcode;
-
-        stopCamera();
-        cameraModal.classList.remove("show");
-
-        searchProduct(barcode);
-
-    } catch (error) {
-        cameraMessage.textContent =
-            "შტრიხკოდი ვერ ამოიკითხა. სცადეთ ხელახლა.";
-
-        console.error("Barcode scan:", error);
-    }
-});
 
 // Kameranı dayandır
 function stopCamera() {
+
     if (cameraControls) {
         cameraControls.stop();
         cameraControls = null;
     }
 
     if (video.srcObject) {
-        video.srcObject.getTracks().forEach(track => track.stop());
+        video.srcObject.getTracks().forEach(track => {
+            track.stop();
+        });
+
         video.srcObject = null;
     }
 }
 
+
 // Kameranı bağla
 closeCamera.addEventListener("click", () => {
-    stopCamera();
-    cameraModal.classList.remove("show");
-});
-// =====================================
-// MANUAL BARCODE
-// =====================================
 
-manualBarcodeButton.addEventListener("click", () => {
     stopCamera();
+
     cameraModal.classList.remove("show");
-    openProductForm("");
+
 });
+
+
+// Əl ilə barkod daxil etmək
+manualBarcodeButton.addEventListener("click", () => {
+
+    stopCamera();
+
+    cameraModal.classList.remove("show");
+
+    openProductForm("");
+
+});
+
+
+// Barkod oxunduqda
+function searchProduct(barcode) {
+
+    barcode = String(barcode).trim();
+
+    if (!barcode) return;
+
+    openProductForm(barcode);
+}
+
 
 // =====================================
 // PRODUCT SEARCH BY BARCODE
