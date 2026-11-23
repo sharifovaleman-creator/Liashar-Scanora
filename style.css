@@ -203,18 +203,18 @@ body {
    SCANORA - LANDSCAPE CAMERA DESIGN
 ===================================== */
 
+
+/* SCANORA CAMERA */
+
 .camera-modal {
     display: none;
     position: fixed;
     inset: 0;
     z-index: 9999;
-
-    background: rgba(8, 15, 30, 0.92);
-
+    background: rgba(5, 12, 25, 0.94);
     align-items: center;
     justify-content: center;
-
-    padding: 15px;
+    padding: 12px;
 }
 
 .camera-modal.show {
@@ -224,111 +224,79 @@ body {
 .camera-box {
     width: 100%;
     max-width: 650px;
-
     background: #ffffff;
-    padding: 22px;
-
+    padding: 20px;
     border-radius: 22px;
-
     text-align: center;
-
-    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
 }
 
 .camera-box h2 {
     font-size: 21px;
-    font-weight: 700;
+    margin-bottom: 16px;
     color: #1e293b;
-
-    margin-bottom: 18px;
 }
 
-/* ENLİ KAMERA GÖRÜNTÜSÜ */
+/* WIDE SCANNER */
 
-.camera-box video {
-    display: block;
 
+#scanner-container {
+    position: relative;
     width: 100%;
     aspect-ratio: 16 / 9;
-
-    object-fit: cover;
-
-    background: #000000;
-
+    overflow: hidden;
+    background: #111827;
     border-radius: 16px;
-
-    border: 2px solid #e2e8f0;
 }
 
-/* STATUS */
+#scanner-container video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+}
+
+#scanner-container canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    pointer-events: none;
+}
 
 .camera-box p {
-    margin: 16px 0;
-
-    color: #475569;
     font-size: 14px;
-    font-weight: 600;
+    color: #475569;
+    margin: 15px 0;
 }
-
-/* BUTTONS */
 
 .camera-box button {
     width: 100%;
-
+    padding: 14px;
     border: none;
-
+    border-radius: 12px;
+    margin-top: 9px;
     background: #2563eb;
     color: white;
-
-    padding: 14px 18px;
-
-    border-radius: 12px;
-
     font-size: 15px;
     font-weight: 600;
-
-    margin-top: 9px;
-
-    cursor: pointer;
-
-    transition: 0.2s;
 }
-
-.camera-box button:active {
-    transform: scale(0.97);
-}
-
-/* MANUAL BUTTON */
 
 #manualBarcodeButton {
     background: #e2e8f0;
     color: #1e293b;
 }
 
-/* CLOSE BUTTON */
-
 #closeCamera {
     background: #ef4444;
-    color: white;
 }
 
-/* MOBILE */
-
 @media (max-width: 480px) {
-
-    .camera-modal {
-        padding: 10px;
-    }
-
     .camera-box {
-        padding: 15px;
-        border-radius: 18px;
+        padding: 13px;
     }
-
-    .camera-box video {
-        aspect-ratio: 16 / 9;
-    }
-
 }
 
 /* =================================
