@@ -376,8 +376,33 @@ async function startCamera() {
 
         Quagga.onDetected(handleBarcode);
 
-        Quagga.start();
+      Quagga.start();
 
+setTimeout(async () => {
+    try {
+        const track = Quagga.CameraAccess.getActiveTrack();
+        
+        if (!track) return;
+        
+        const capabilities = track.getCapabilities();
+        
+        if (
+            capabilities.focusMode &&
+            capabilities.focusMode.includes("continuous")
+        ) {
+            await track.applyConstraints({
+                advanced: [
+                    { focusMode: "continuous" }
+                ]
+            });
+            
+            console.log("Avtomatik fokus aktivdir!");
+        }
+        
+    } catch (error) {
+        console.log("Fokus xətası:", error);
+    }
+}, 1000);
         scannerRunning = true;
 
         cameraMessage.textContent = "Barkod gözlənilir...";
