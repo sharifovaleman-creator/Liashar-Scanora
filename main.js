@@ -480,6 +480,40 @@ function searchProduct(barcode) {
 
 }
 
+
+async function checkCameras() {
+
+    try {
+
+        const devices =
+            await navigator.mediaDevices.enumerateDevices();
+
+        const cameras = devices.filter(
+            device => device.kind === "videoinput"
+        );
+
+        console.log("SCANORA CAMERAS:", cameras);
+
+        cameras.forEach((camera, index) => {
+
+            console.log(
+                "Kamera:",
+                index,
+                camera.label,
+                camera.deviceId
+            );
+
+        });
+
+    } catch (error) {
+
+        console.error("Camera list error:", error);
+
+    }
+
+}
+
+
 // =====================================
 // PRODUCT SEARCH BY BARCODE
 // =====================================
