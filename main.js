@@ -304,9 +304,13 @@ async function startCamera() {
                 "#scanner-container"
             ),
 
-            constraints: {
-               facingMode: "environment"
-            },
+           constraints: {
+    deviceId: {
+        exact: "CAMERA_DEVICE_ID"
+    },
+    width: { ideal: 1280 },
+    height: { ideal: 720 }
+},
 
             area: {
                 top: "15%",
@@ -505,11 +509,13 @@ async function checkCameras() {
             return;
         }
         
-        cameraMessage.textContent =
-            "Tapılan kamera sayı: " + cameras.length + "\n" +
-            cameras.map((camera, index) =>
-                (index + 1) + ". " + (camera.label || "Kamera " + (index + 1))
-            ).join("\n");
+       cameraMessage.textContent =
+    "Tapılan kamera sayı: " + cameras.length + "\n" +
+    cameras.map((camera, index) =>
+        (index + 1) + ". " +
+        (camera.label || "Kamera " + (index + 1)) +
+        " | ID: " + camera.deviceId
+    ).join("\n");
         
     } catch (error) {
         cameraMessage.textContent = "Xəta: " + error.message;
