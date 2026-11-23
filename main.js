@@ -254,86 +254,200 @@ function saveDatabase() {
 // SCANORA - AUTO BARCODE SCANNER
 // =====================================
 
-let scanner = null;
-let cameraControls = null;
+// =====================================
+// SCANORA - QUAGGA2 BARCODE SCANNER
+// =====================================
+
+let scannerRunning = false;
 let barcodeDetected = false;
 
+let lastBarcode = "";
+let barcodeCount = 0;
+
+// Kamera düyməsi
 scanButton.addEventListener("click", startCamera);
 
-// Kameranı aç və avtomatik barkod axtar
-async function startCamera() {
+
+// KAMERANI AÇ
+function startCamera() {
 
     cameraModal.classList.add("show");
-    cameraMessage.textContent = "კამერის მომზადება...";
+
+    cameraMessage.textContent =
+        "კამერის მომზადება...";
+
     barcodeDetected = false;
+    lastBarcode = "";
+    barcodeCount = 0;
 
-    try {
+    if (scannerRunning) {
+        stopCamera();
+    }
 
-        scanner = new ZXingBrowser.BrowserMultiFormatReader();
+    if (typeof Quagga === "undefined") {
+        cameraMessage.textContent =
+            "სკანერის ჩატვირთვა ვერ მოხერხდა.";
+        return;
+    }
+
+    Quagga.init({
+
+        inputStream: {
+
+            name: "Scanora Camera",
+
+            type: "LiveStream",
+
+            target: document.querySelector(
+                "#scanner-container"
+            ),
+
+            constraints: {
+               facingMode: "environment"
+            },
+
+            area: {
+                top: "15%",
+                right: "5%",
+                left: "5%",
+                bottom: "15%"
+            }
+        },
+
+        locator: {
+            patchSize: "medium",
+            halfSample: false
+        },
+
+        frequency: 10,
+
+        decoder: {
+
+            readers: [
+                "ean_reader",
+                "ean_8_reader",
+                "code_128_reader",
+                "upc_reader",
+                "upc_e_reader"
+            ],
+
+            multiple: false
+        },
+
+        locate: true
+
+    }, function(error) {
+
+        if (error) {
+
+            console.error("Quagga error:", error);
+
+            cameraMessage.textContent =
+                "კამერის გახსნა ვერ მოხერხდა.";
+
+            return;
+        }
+
+        Quagga.start();
+
+        scannerRunning = true;
 
         cameraMessage.textContent =
             "შტრიხკოდის მოლოდინში...";
 
-        cameraControls = await scanner.decodeFromConstraints(
-            {
-                video: {
-                    facingMode: { ideal: "environment" },
-                    width: { ideal: 1920 },
-                    height: { ideal: 1080 }
-                },
-                audio: false
-            },
-            video,
-            (result, error) => {
+        // Autofocus dəstəyi
+        try {
 
-                // Barkod tapılıbsa
-                if (result && !barcodeDetected) {
+            const track =
+                Quagga.CameraAccess.getActiveTrack();
 
-                    barcodeDetected = true;
+            const capabilities =
+                track.getCapabilities();
 
-                    const barcode = result.getText();
+            if (
+                capabilities.focusMode &&
+                capabilities.focusMode.includes("continuous")
+            ) {
 
-                    cameraMessage.textContent =
-                        "შტრიხკოდი წაკითხულია: " + barcode;
+                track.applyConstraints({
+                    advanced: [
+                        { focusMode: "continuous" }
+                    ]
+                }).catch(console.error);
 
-                    stopCamera();
-
-                    cameraModal.classList.remove("show");
-
-                    searchProduct(barcode);
-                }
             }
-        );
 
-    } catch (error) {
+        } catch (error) {
 
-        cameraMessage.textContent =
-            "კამერის გახსნა ვერ მოხერხდა.";
+            console.log("Autofocus dəstəklənmir:", error);
 
-        console.error("Camera error:", error);
-    }
+        }
+
+    });
+
+    Quagga.onDetected(handleBarcode);
 }
 
 
-// Kameranı dayandır
+// BARKODU OXU
+function handleBarcode(result) {
+
+    if (barcodeDetected) return;
+
+    if (!result || !result.codeResult) return;
+
+    const barcode = result.codeResult.code;
+
+    if (!barcode) return;
+
+    // Eyni barkodu iki dəfə təsdiqlə
+    if (barcode === lastBarcode) {
+
+        barcodeCount++;
+
+    } else {
+
+        lastBarcode = barcode;
+        barcodeCount = 1;
+
+    }
+
+    cameraMessage.textContent =
+        "შტრიხკოდის შემოწმება: " + barcode;
+
+    if (barcodeCount < 2) return;
+
+    barcodeDetected = true;
+
+    cameraMessage.textContent =
+        "შტრიხკოდი წაკითხულია: " + barcode;
+
+    stopCamera();
+
+    cameraModal.classList.remove("show");
+
+    searchProduct(barcode);
+
+}
+
+
+// KAMERANI DAYANDIR
 function stopCamera() {
 
-    if (cameraControls) {
-        cameraControls.stop();
-        cameraControls = null;
+    if (typeof Quagga !== "undefined") {
+
+        Quagga.offDetected(handleBarcode);
+
+        if (scannerRunning) {
+            Quagga.stop();
+        }
     }
 
-    if (video.srcObject) {
-        video.srcObject.getTracks().forEach(track => {
-            track.stop();
-        });
-
-        video.srcObject = null;
-    }
+    scannerRunning = false;
 }
 
 
-// Kameranı bağla
+// BAĞLAMA DÜYMƏSİ
 closeCamera.addEventListener("click", () => {
 
     stopCamera();
@@ -343,7 +457,7 @@ closeCamera.addEventListener("click", () => {
 });
 
 
-// Əl ilə barkod daxil etmək
+// ƏL İLƏ BARKOD DAXİL ETMƏ
 manualBarcodeButton.addEventListener("click", () => {
 
     stopCamera();
@@ -355,7 +469,7 @@ manualBarcodeButton.addEventListener("click", () => {
 });
 
 
-// Barkod oxunduqda
+// MƏHSUL FORMASI
 function searchProduct(barcode) {
 
     barcode = String(barcode).trim();
@@ -363,8 +477,8 @@ function searchProduct(barcode) {
     if (!barcode) return;
 
     openProductForm(barcode);
-}
 
+}
 
 // =====================================
 // PRODUCT SEARCH BY BARCODE
