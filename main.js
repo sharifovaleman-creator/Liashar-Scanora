@@ -509,13 +509,15 @@ async function checkCameras() {
             return;
         }
         
-       cameraMessage.textContent =
-    "Tapılan kamera sayı: " + cameras.length + "\n" +
-    cameras.map((camera, index) =>
-        (index + 1) + ". " +
-        (camera.label || "Kamera " + (index + 1)) +
-        " | ID: " + camera.deviceId
-    ).join("\n");
+      cameraMessage.textContent = JSON.stringify(
+    cameras.map((camera, index) => ({
+        number: index + 1,
+        name: camera.label,
+        id: camera.deviceId
+    })),
+    null,
+    2
+);
         
     } catch (error) {
         cameraMessage.textContent = "Xəta: " + error.message;
