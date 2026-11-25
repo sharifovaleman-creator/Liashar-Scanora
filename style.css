@@ -1475,3 +1475,33 @@ input:focus-visible {
         padding: 10px 8px;
     }
 }
+/* =====================================
+   CAMERA WINDOW FIX
+===================================== */
+
+#scanner-container {
+    width: 100%;
+    max-width: 420px;
+    height: 280px;
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+    border-radius: 16px;
+    background: #000;
+}
+
+#scanner-container video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+#scanner-container canvas {
+    display: none !important;
+}
+
+#scanner-container video,
+#scanner-container .drawingBuffer {
+    position: absolute;
+    inset: 0;
+}
