@@ -173,7 +173,12 @@ body {
         transform .45s cubic-bezier(.2, .8, .2, 1),
         opacity .3s ease;
 }
-
+#scanButton img {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    display: block;
+}
 /* MENU OPEN POSITIONS */
 
 .menu-container.active .item-1 {
@@ -205,7 +210,6 @@ body {
 
 
 /* SCANORA CAMERA */
-
 .camera-modal {
     display: none;
     position: fixed;
@@ -220,85 +224,97 @@ body {
 .camera-modal.show {
     display: flex;
 }
-
 .camera-box {
     width: 100%;
-    max-width: 650px;
-    background: #ffffff;
-    padding: 20px;
+    max-width: 460px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px;
     border-radius: 22px;
+    background: #ffffff;
     text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
 }
 
 .camera-box h2 {
+    color: #172033;
     font-size: 21px;
-    margin-bottom: 16px;
-    color: #1e293b;
+    margin-bottom: 10px;
 }
 
-/* WIDE SCANNER */
-
-
-#scanner-container {
+#closeCamera {
     width: 100%;
-    height: 420px;
-    position: relative;
-    overflow: hidden;
-    background: #000;
-    border-radius: 14px;
-}
-
-#scanner-container video {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    position: absolute;
-    inset: 0;
-}
-
-#scanner-container canvas {
-    position: absolute;
-    inset: 0;
-    width: 100% !important;
-    height: 100% !important;
-}
-
-@media (max-width: 480px) {
-    #scanner-container {
-        height: 65vh;
-        max-height: 520px;
-    }
-}
-.camera-box p {
-    font-size: 14px;
-    color: #475569;
-    margin: 15px 0;
-}
-
-.camera-box button {
-    width: 100%;
-    padding: 14px;
+    padding: 13px;
     border: none;
     border-radius: 12px;
-    margin-top: 9px;
-    background: #2563eb;
     color: white;
-    font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 10px;
+}
+.scanner-subtitle {
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 20px;
 }
 
-#manualBarcodeButton {
-    background: #e2e8f0;
+.scanner-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.scanner-options button {
+    min-height: 145px;
+    padding: 16px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #f8fafc;
     color: #1e293b;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.scanner-options button:active {
+    background: #dbeafe;
+    transform: scale(0.97);
+}
+
+.scanner-options button span {
+    font-size: 30px;
+}
+
+.scanner-options button strong {
+    font-size: 14px;
+}
+
+.scanner-options button small {
+    font-size: 11px;
+    color: #64748b;
+}
+
+#cameraMessage {
+    color: #64748b;
+    font-size: 13px;
+    margin: 15px 0;
 }
 
 #closeCamera {
     background: #ef4444;
 }
 
-@media (max-width: 480px) {
-    .camera-box {
-        padding: 13px;
+@media (max-width: 380px) {
+    .scanner-options {
+        grid-template-columns: 1fr;
+    }
+
+    .scanner-options button {
+        min-height: 110px;
     }
 }
 
@@ -1105,4 +1121,357 @@ input:focus-visible {
     border-radius: 14px;
     object-fit: cover;
     touch-action: manipulation;
+}
+
+/* =====================================
+   SCANORA - PRODUCT DATE LIST
+===================================== */
+
+.product-expiry-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.expiry-date-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    padding: 13px 14px;
+
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(120, 140, 170, 0.16);
+    border-radius: 14px;
+
+    transition:
+        background 0.25s ease,
+        border 0.25s ease,
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: pan-y;
+}
+
+.expiry-date-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.expiry-date-label {
+    font-size: 11px;
+    color: #7b8494;
+    font-weight: 500;
+}
+
+.expiry-date-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #202b3c;
+    letter-spacing: 0.3px;
+}
+
+.expiry-date-status {
+    width: fit-content;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 9px;
+    border-radius: 20px;
+}
+
+/* =====================================
+   DATE STATUS COLORS
+===================================== */
+
+.expiry-date-status.status-green {
+    color: #15803d;
+    background: #dcfce7;
+}
+
+.expiry-date-status.status-yellow {
+    color: #a16207;
+    background: #fef3c7;
+}
+
+.expiry-date-status.status-orange {
+    color: #c2410c;
+    background: #ffedd5;
+}
+
+.expiry-date-status.status-red {
+    color: #b91c1c;
+    background: #fee2e2;
+}
+
+/* =====================================
+   LONG PRESS ANIMATION
+===================================== */
+
+.expiry-date-row.date-selected {
+    border-color: #2563eb;
+    background: #eff6ff;
+
+    animation: dateShake 0.35s ease;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+@keyframes dateShake {
+    0% {
+        transform: translateX(0);
+    }
+
+    20% {
+        transform: translateX(-3px);
+    }
+
+    40% {
+        transform: translateX(3px);
+    }
+
+    60% {
+        transform: translateX(-2px);
+    }
+
+    80% {
+        transform: translateX(2px);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+/* =====================================
+   DATE ACTION BUTTONS
+===================================== */
+
+.date-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    width: 100%;
+    animation: actionAppear 0.2s ease;
+}
+
+.date-actions[hidden] {
+    display: none;
+}
+
+@keyframes actionAppear {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.date-action {
+    flex: 1;
+    min-width: 100px;
+
+    border: none;
+    border-radius: 10px;
+
+    padding: 10px 12px;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.date-action:active {
+    transform: scale(0.96);
+}
+
+.archive-date {
+    color: #1d4ed8;
+    background: #dbeafe;
+}
+
+.archive-date:hover {
+    background: #bfdbfe;
+}
+
+.delete-date {
+    color: #b91c1c;
+    background: #fee2e2;
+}
+
+.delete-date:hover {
+    background: #fecaca;
+}
+
+.date-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* =====================================
+   ARCHIVE SECTION
+===================================== */
+
+.archive-section {
+    margin-top: 25px;
+    padding: 17px;
+
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+}
+
+.archive-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    margin-bottom: 17px;
+}
+
+.archive-header h2 {
+    margin: 0 0 5px;
+    font-size: 19px;
+    color: #334155;
+}
+
+.archive-header span {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.archive-clear-all {
+    border: none;
+    border-radius: 10px;
+
+    padding: 10px 13px;
+
+    background: #fee2e2;
+    color: #b91c1c;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.archive-clear-all:hover {
+    background: #fecaca;
+}
+
+.archive-clear-all:active {
+    transform: scale(0.96);
+}
+
+.archive-clear-all:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* =====================================
+   ARCHIVE PRODUCT CARD
+===================================== */
+
+.archive-product-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 3px 12px rgba(15, 23, 42, 0.04);
+    margin-bottom: 12px;
+}
+
+.archive-product-card .product-status {
+    color: #64748b;
+    background: #e2e8f0;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+}
+
+.archive-product-card .expiry-date-row {
+    background: #f8fafc;
+}
+
+.archive-product-card .expiry-date-label {
+    color: #94a3b8;
+}
+
+/* =====================================
+   EMPTY ARCHIVE
+===================================== */
+
+#emptyArchive {
+    text-align: center;
+    padding: 25px 10px;
+
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+#emptyArchive[hidden] {
+    display: none;
+}
+
+/* =====================================
+   PRODUCT CARD DATE LIST
+===================================== */
+
+.product-card .product-expiry-list {
+    border-top: 1px solid rgba(148, 163, 184, 0.15);
+    padding-top: 12px;
+}
+
+.product-card .product-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+/* =====================================
+   MOBILE RESPONSIVE
+===================================== */
+
+@media (max-width: 480px) {
+
+    .archive-section {
+        padding: 13px;
+        border-radius: 16px;
+    }
+
+    .archive-header h2 {
+        font-size: 17px;
+    }
+
+    .archive-clear-all {
+        padding: 9px 10px;
+        font-size: 11px;
+    }
+
+    .expiry-date-row {
+        padding: 12px;
+        border-radius: 12px;
+    }
+
+    .expiry-date-value {
+        font-size: 15px;
+    }
+
+    .date-action {
+        font-size: 11px;
+        padding: 10px 8px;
+    }
 }
