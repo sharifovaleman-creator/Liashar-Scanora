@@ -1475,33 +1475,82 @@ input:focus-visible {
         padding: 10px 8px;
     }
 }
+
 /* =====================================
-   CAMERA WINDOW FIX
+   SCANORA - CAMERA WINDOW FIX
 ===================================== */
 
-#scanner-container {
-    width: 100%;
+.camera-box {
+    width: calc(100% - 30px);
     max-width: 420px;
-    height: 280px;
-    margin: 0 auto;
-    overflow: hidden;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 20px;
+    border-radius: 22px;
+}
+
+#scanner-container {
     position: relative;
+    width: 100%;
+    height: 250px;
+    max-height: 35vh;
+    overflow: hidden;
+    background: #080808;
     border-radius: 16px;
-    background: #000;
-}
-
-#scanner-container video {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-}
-
-#scanner-container canvas {
-    display: none !important;
+    margin: 15px auto;
 }
 
 #scanner-container video,
-#scanner-container .drawingBuffer {
-    position: absolute;
-    inset: 0;
+#scanner-container canvas {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+}
+
+#scanner-container canvas {
+    pointer-events: none;
+}
+
+/* =====================================
+   MANUAL BARCODE BUTTON
+===================================== */
+
+#manualBarcodeButton {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 100%;
+    min-height: 48px;
+    margin: 12px 0;
+    padding: 12px 16px;
+    border: 1px solid #2563EB;
+    border-radius: 12px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+#manualBarcodeButton:active {
+    transform: scale(0.97);
+    background: #dbeafe;
+}
+
+/* =====================================
+   CAMERA CLOSE BUTTON
+===================================== */
+
+#closeCamera {
+    display: block;
+    width: 100%;
+    min-height: 46px;
+    margin-top: 8px;
+    border-radius: 12px;
+    cursor: pointer;
 }
